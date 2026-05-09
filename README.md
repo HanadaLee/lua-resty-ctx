@@ -10,14 +10,17 @@ In OpenResty, `ngx.ctx` provides a per-request Lua table for storing arbitrary d
 
 ## API
 
-### stash_ref
+### stash_ref(ctx?)
 
 Stashes the current request's `ngx.ctx` reference into `ngx.var.ctx_ref`.
 
 ```lua
 local ctx = require "resty.ctx"
-ctx.stash_ref()
+ctx.stash_ref()       -- uses current ngx.ctx
+ctx.stash_ref(ctx)    -- pass an explicit context
 ```
+
+- **ctx** *(optional)*: A context table to stash. When omitted or falsy, `ngx.ctx` is auto-loaded to ensure the context table exists before stashing.
 
 Call this in the parent request (e.g., in an `access` phase handler) **before** issuing subrequests. This function is idempotent — calling it multiple times is safe.
 
@@ -41,7 +44,11 @@ local ctx = require "resty.ctx"
 ngx.ctx.user_id = 123
 ngx.ctx.session  = { role = "admin" }
 
+-- implicitly stashes ngx.ctx
 ctx.stash_ref()
+
+-- or explicitly pass a context table
+-- ctx.stash_ref(my_ctx)
 
 local res = ngx.location.capture("/sub")
 
